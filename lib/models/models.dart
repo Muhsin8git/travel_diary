@@ -1,7 +1,7 @@
 class Member {
   final String id;
   final String name;
-  final String role; // 'Owner' or 'Member'
+  final String role; // 'Owner', 'Admin', 'Member'
   final String avatarUrl;
 
   Member({
@@ -64,6 +64,26 @@ class Achievement {
   });
 }
 
+class Destination {
+  final String id;
+  final String name;
+  final String country;
+  final String imageUrl;
+  final double rating;
+  final double startingBudget;
+  final String description;
+
+  Destination({
+    required this.id,
+    required this.name,
+    required this.country,
+    required this.imageUrl,
+    required this.rating,
+    required this.startingBudget,
+    required this.description,
+  });
+}
+
 class Trip {
   final String id;
   final String destination;
@@ -72,6 +92,8 @@ class Trip {
   final DateTime endDate;
   final double budget;
   final String status;
+  final bool isPublic;
+  final bool isOwner;
   final List<Member> members;
   final List<ChatMessage> chatMessages;
   final List<Activity> activities;
@@ -85,6 +107,8 @@ class Trip {
     required this.endDate,
     required this.budget,
     required this.status,
+    this.isPublic = false,
+    this.isOwner = false,
     required this.members,
     required this.chatMessages,
     required this.activities,

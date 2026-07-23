@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
+import 'trips_screen.dart';
 import 'profile_screen.dart';
 
 class MainLayout extends StatefulWidget {
@@ -14,7 +15,7 @@ class _MainLayoutState extends State<MainLayout> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const Center(child: Text('Trips - Coming Soon')),
+    const TripsScreen(),
     const ProfileScreen(),
   ];
 

@@ -1,3 +1,5 @@
+export 'discovery_item.dart';
+
 class Member {
   final String id;
   final String name;
@@ -64,6 +66,22 @@ class Achievement {
   });
 }
 
+class BadgeItem {
+  final String id;
+  final String title;
+  final String description;
+  final String iconName;
+  final bool isEarned;
+
+  BadgeItem({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.iconName,
+    required this.isEarned,
+  });
+}
+
 class Destination {
   final String id;
   final String name;
@@ -94,6 +112,9 @@ class Trip {
   final String status;
   final bool isPublic;
   final bool isOwner;
+  final String routeEndpoint; // e.g. 'Kochi ➔ Denpasar, Bali'
+  final bool isOpenForMembers;
+  final String? activeDay; // e.g. 'Day 3 of 7'
   final List<Member> members;
   final List<ChatMessage> chatMessages;
   final List<Activity> activities;
@@ -109,6 +130,9 @@ class Trip {
     required this.status,
     this.isPublic = false,
     this.isOwner = false,
+    this.routeEndpoint = 'Kochi ➔ Destination',
+    this.isOpenForMembers = true,
+    this.activeDay,
     required this.members,
     required this.chatMessages,
     required this.activities,

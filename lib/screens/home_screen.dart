@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/dummy_data.dart';
 import '../models/models.dart';
 import '../widgets/discovery_card.dart';
+import '../widgets/genre_onboarding_modal.dart';
 import '../widgets/location_selector_sheet.dart';
 import '../widgets/trip_card.dart';
 import '../widgets/create_trip_sheet.dart';
@@ -16,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedLocation = 'Kochi';
   String _selectedCategory = 'All';
+  List<String> _onboardingGenres = ['Biker & Moto Club', 'Trekking & Backpacking', 'Camping & Wilderness'];
   final TextEditingController _searchController = TextEditingController();
 
   late List<Trip> _userTrips;
@@ -23,19 +25,18 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> _categoryChips = [
     'All',
     'Nearby',
-    'Events',
-    'Trips',
-    'Destinations',
-    'Food',
-    'Adventure',
-    'Camping',
-    'Festivals',
-    'Family',
-    'Luxury',
-    'Nature',
-    'Road Trips',
-    'Beach',
-    'Mountains',
+    'Biker & Moto Club',
+    'Trekking & Backpacking',
+    'Camping & Wilderness',
+    'Culinary & Street Food',
+    '4x4 Off-Roading',
+    'Beach & Coastal Jams',
+    'Hidden Gems & Photo',
+    'Overnight Road Trips',
+    'Wildlife & Safaris',
+    'Solo Backpacker',
+    'Festivals & Concerts',
+    'Wellness & Retreats',
   ];
 
   @override
@@ -45,6 +46,34 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchController.addListener(() {
       setState(() {});
     });
+
+    // Auto-prompt Netflix genre onboarding modal on first build frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _openGenreOnboardingModal(isInitial: true);
+    });
+  }
+
+  void _openGenreOnboardingModal({bool isInitial = false}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GenreOnboardingModal(
+        selectedGenres: _onboardingGenres,
+        onGenresSaved: (newGenres) {
+          setState(() {
+            _onboardingGenres = newGenres;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('🎉 Discovery Wall personalized for ${newGenres.length} genres!'),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _openLocationSelector() {
@@ -78,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
               0,
               Trip(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
-                destination: 'New Adventure',
+                destination: 'New Companion Trip',
                 coverUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=800',
                 startDate: DateTime.now().add(const Duration(days: 14)),
                 endDate: DateTime.now().add(const Duration(days: 21)),
@@ -102,12 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<DiscoveryItem> _getFilteredItems() {
     final query = _searchController.text.toLowerCase().trim();
 
-    return dummyDiscoveryItems.where((item) {
-      // Location Filtering (If Nearby chip selected or matching cityTag)
-      final matchesLocation = (_selectedCategory == 'Nearby')
-          ? item.cityTag == _selectedLocation
-          : (item.cityTag == _selectedLocation || item.cityTag != _selectedLocation);
-
+    final filtered = dummyDiscoveryItems.where((item) {
       // Category Filtering
       bool matchesCategory = true;
       if (_selectedCategory != 'All') {
@@ -125,11 +149,23 @@ class _HomeScreenState extends State<HomeScreen> {
         matchesQuery = item.title.toLowerCase().contains(query) ||
             item.location.toLowerCase().contains(query) ||
             item.subtitle.toLowerCase().contains(query) ||
+            (item.associatedClubName ?? '').toLowerCase().contains(query) ||
             item.tags.any((t) => t.toLowerCase().contains(query));
       }
 
-      return matchesLocation && matchesCategory && matchesQuery;
+      return matchesCategory && matchesQuery;
     }).toList();
+
+    // Sort by selected onboarding genres
+    filtered.sort((a, b) {
+      final aMatchesOnboarding = a.tags.any((t) => _onboardingGenres.contains(t));
+      final bMatchesOnboarding = b.tags.any((t) => _onboardingGenres.contains(t));
+      if (aMatchesOnboarding && !bMatchesOnboarding) return -1;
+      if (!aMatchesOnboarding && bMatchesOnboarding) return 1;
+      return 0;
+    });
+
+    return filtered;
   }
 
   @override
@@ -146,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Top Bar & Location Selector Header
+            // Top Bar & Vibe Personalization Header
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
@@ -156,25 +192,47 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Good Morning 👋',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Travel Tribe 🚀',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Ready for your next adventure?',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
+                              const SizedBox(height: 2),
+                              // Vibe Selector Pill
+                              GestureDetector(
+                                onTap: () => _openGenreOnboardingModal(),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.auto_awesome, size: 14, color: Theme.of(context).colorScheme.primary),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        _onboardingGenres.isNotEmpty
+                                            ? 'Vibe: ${_onboardingGenres.first} +${_onboardingGenres.length - 1}'
+                                            : 'Set Your Travel Vibe',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Icon(Icons.edit, size: 12, color: Theme.of(context).colorScheme.primary),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         // Location Selector Pill
                         InkWell(
@@ -224,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Search destinations, events, cities, countries...',
+                          hintText: 'Search clubs, trips, bikers, treks, events...',
                           prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
@@ -242,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            // Horizontal Category Chips (Sticky feel)
+            // Horizontal Category Chips
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 48,
@@ -281,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            // The Discovery Feed ("The Wall")
+            // Discovery Feed ("The Wall")
             if (filteredDiscoveryList.isNotEmpty)
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -303,7 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(Icons.explore_off, size: 54, color: Colors.grey[400]),
                       const SizedBox(height: 12),
                       Text(
-                        'No experiences found in $_selectedCategory for "$_selectedLocation"',
+                        'No club trips found matching "$_selectedCategory"',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
@@ -321,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-            // Personal Section: "Continue Planning" towards bottom
+            // Personal Section: "Continue Planning"
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -338,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Your upcoming itineraries and saved trips.',
+                      'Your ongoing companion trips & itineraries.',
                       style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 16),

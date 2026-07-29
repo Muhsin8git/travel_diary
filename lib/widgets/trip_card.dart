@@ -227,14 +227,11 @@ class TripCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              Hero(
-                tag: 'trip_cover_${trip.id}',
-                child: Image.network(
-                  trip.coverUrl,
-                  height: 240,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+              Image.network(
+                trip.coverUrl,
+                height: 240,
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
               Container(
                 height: 240,

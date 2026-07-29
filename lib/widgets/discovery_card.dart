@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../data/dummy_data.dart';
 import '../models/models.dart';
 import '../screens/discovery_detail_screen.dart';
+import '../screens/club_details_screen.dart';
 
 class DiscoveryCard extends StatelessWidget {
   final DiscoveryItem item;
@@ -12,11 +14,27 @@ class DiscoveryCard extends StatelessWidget {
     this.onSave,
   });
 
+  void _openClubDetails(BuildContext context) {
+    final matchedClub = dummyClubs.firstWhere(
+      (c) => c.name.toLowerCase() == (item.associatedClubName ?? '').toLowerCase(),
+      orElse: () => dummyClubs[0],
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ClubDetailsScreen(club: matchedClub)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (item.type == DiscoveryType.recommendation) {
       return _buildRecommendationCard(context);
     }
+
+    final double fundraiserProgress = (item.fundraiserTarget != null && item.fundraiserTarget! > 0)
+        ? ((item.fundraiserRaised ?? 0) / item.fundraiserTarget!).clamp(0.0, 1.0)
+        : 0.0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -49,14 +67,11 @@ class DiscoveryCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  child: Hero(
-                    tag: 'disc_img_${item.id}',
-                    child: Image.network(
-                      item.imageUrl,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                  child: Image.network(
+                    item.imageUrl,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 Container(
@@ -69,56 +84,110 @@ class DiscoveryCard extends StatelessWidget {
                       colors: [
                         Colors.black.withOpacity(0.3),
                         Colors.transparent,
-                        Colors.black.withOpacity(0.6),
+                        Colors.black.withOpacity(0.65),
                       ],
                     ),
                   ),
                 ),
-                // Type Badge
+                // Type & Permanent Club Badge
                 Positioned(
                   top: 14,
                   left: 14,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getBadgeColor(context, item.type),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _getTypeLabel(item.type),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                // Rating / Seats Badge
-                Positioned(
-                  top: 14,
-                  right: 14,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.65),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          item.rating.toString(),
+                  child: Wrap(
+                    spacing: 6,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _getBadgeColor(context, item.type),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _getTypeLabel(item.type),
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      if (item.associatedClubName != null)
+                        GestureDetector(
+                          onTap: () => _openClubDetails(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white30),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  item.isClubPrivate ? Icons.lock : Icons.verified,
+                                  color: Colors.amber,
+                                  size: 12,
+                                ),
+                                const SizedBox(width: 4),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: 140),
+                                  child: Text(
+                                    item.associatedClubName!,
+                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                // Rating & Friends Badge
+                Positioned(
+                  top: 14,
+                  right: 14,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.65),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              item.rating.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.secondary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '👥 ${item.friendsJoinedCount} Friends',
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 // Location / Subtitle Bottom Overlay
@@ -181,6 +250,42 @@ class DiscoveryCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    ),
+                    child: Text(
+                      item.audienceType,
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  if (item.fundraiserTarget != null) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Fund Pool: ₹${item.fundraiserRaised!.toInt()} / ₹${item.fundraiserTarget!.toInt()}',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
+                        ),
+                        Text('${(fundraiserProgress * 100).toInt()}% Goal', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: fundraiserProgress,
+                        minHeight: 6,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 14),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -321,6 +426,10 @@ class DiscoveryCard extends StatelessWidget {
 
   Color _getBadgeColor(BuildContext context, DiscoveryType type) {
     switch (type) {
+      case DiscoveryType.bikerClub:
+        return Colors.deepOrange;
+      case DiscoveryType.offRoading:
+        return Colors.brown;
       case DiscoveryType.event:
         return Colors.orange;
       case DiscoveryType.communityTrip:
@@ -328,7 +437,7 @@ class DiscoveryCard extends StatelessWidget {
       case DiscoveryType.adventure:
         return Colors.redAccent;
       case DiscoveryType.camping:
-        return Colors.green;
+        return Colors.amber[800]!;
       case DiscoveryType.hiddenGem:
         return Colors.purple;
       default:
@@ -338,6 +447,10 @@ class DiscoveryCard extends StatelessWidget {
 
   String _getTypeLabel(DiscoveryType type) {
     switch (type) {
+      case DiscoveryType.bikerClub:
+        return 'BIKER CLUB 🏍️';
+      case DiscoveryType.offRoading:
+        return '4x4 OFF-ROAD 🚜';
       case DiscoveryType.event:
         return 'EVENT 🎉';
       case DiscoveryType.communityTrip:
@@ -361,6 +474,10 @@ class DiscoveryCard extends StatelessWidget {
 
   String _getButtonLabel(DiscoveryType type) {
     switch (type) {
+      case DiscoveryType.bikerClub:
+        return 'Join Caravan';
+      case DiscoveryType.offRoading:
+        return 'Join Convoy';
       case DiscoveryType.event:
       case DiscoveryType.camping:
         return 'Join Event';

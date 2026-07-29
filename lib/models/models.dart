@@ -1,4 +1,5 @@
 export 'discovery_item.dart';
+export 'club_model.dart';
 
 class Member {
   final String id;

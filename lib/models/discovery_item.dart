@@ -10,6 +10,9 @@ enum DiscoveryType {
   camping,
   hiking,
   recommendation,
+  bikerClub,
+  offRoading,
+  wildlifeSafari,
 }
 
 class DiscoveryItem {
@@ -25,7 +28,7 @@ class DiscoveryItem {
   final String priceOrBudget;
   final int attendeesCount;
   final int? seatsLeft;
-  final List<String> tags; // e.g. ['Events', 'Nearby', 'Beach', 'Food']
+  final List<String> tags; // e.g. ['Biker Club', 'Nearby', 'Beach', 'Food']
   final String description;
   final String organizerName;
   final String organizerAvatar;
@@ -33,6 +36,12 @@ class DiscoveryItem {
   final String? duration;
   final List<String> galleryPhotos;
   final String? recommendationPrompt;
+  final String? associatedClubName;
+  final bool isClubPrivate;
+  final double? fundraiserTarget;
+  final double? fundraiserRaised;
+  final int friendsJoinedCount;
+  final String audienceType; // e.g. '👨‍👩‍👧‍👦 Family Friendly', '🏍️ Bikers Only', '🥾 Hardcore Trekkers', '👥 Open to All'
 
   DiscoveryItem({
     required this.id,
@@ -55,5 +64,11 @@ class DiscoveryItem {
     this.duration,
     this.galleryPhotos = const [],
     this.recommendationPrompt,
+    this.associatedClubName,
+    this.isClubPrivate = false,
+    this.fundraiserTarget,
+    this.fundraiserRaised,
+    this.friendsJoinedCount = 3,
+    this.audienceType = '👨‍👩‍👧‍👦 Family Friendly',
   });
 }

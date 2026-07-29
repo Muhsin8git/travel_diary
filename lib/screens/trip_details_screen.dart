@@ -55,12 +55,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> with SingleTicker
                 background: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Hero(
-                      tag: 'trip_cover_${widget.trip.id}',
-                      child: Image.network(
-                        widget.trip.coverUrl,
-                        fit: BoxFit.cover,
-                      ),
+                    Image.network(
+                      widget.trip.coverUrl,
+                      fit: BoxFit.cover,
                     ),
                     Container(
                       decoration: BoxDecoration(

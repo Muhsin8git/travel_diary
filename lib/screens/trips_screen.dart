@@ -384,14 +384,11 @@ class _TripsScreenState extends State<TripsScreen> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  child: Hero(
-                    tag: 'trip_cover_${trip.id}',
-                    child: Image.network(
-                      trip.coverUrl,
-                      height: 180,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                  child: Image.network(
+                    trip.coverUrl,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 Container(
